@@ -92,10 +92,19 @@ class ShoppingListService:
     def _get_planned_meals(self, meal_plan_id: str) -> List[Dict]:
         """Получает все запланированные приёмы пищи для плана"""
         table = self.api.table(self.base_id, self.planned_meals_table)
-        formula = f"SEARCH('{meal_plan_id}', ARRAYJOIN({{Meal Plan}}))"
         
-        records = table.all(formula=formula)
-        return records
+        # Получаем все records и фильтруем в Python
+        # Airtable формулы для linked records работают странно, поэтому фильтруем здесь
+        all_records = table.all()
+        
+        # Фильтруем по meal_plan_id
+        filtered_records = []
+        for record in all_records:
+            meal_plan_links = record['fields'].get('Meal Plan', [])
+            if meal_plan_id in meal_plan_links:
+                filtered_records.append(record)
+        
+        return filtered_records
 
     def _extract_recipe_ids(self, planned_meals: List[Dict]) -> List[str]:
         """Извлекает уникальные ID рецептов из запланированных приёмов"""
@@ -136,6 +145,7 @@ class ShoppingListService:
         
         # Получаем связи рецепт-ингредиент
         recipe_ingredients = table.all(formula=formula)
+        
         # Создаём мапу рецепт -> количество порций
         recipe_servings = {}
         for meal in planned_meals:
