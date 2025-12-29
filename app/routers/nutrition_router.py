@@ -8,8 +8,8 @@ from typing import Optional
 from datetime import datetime
 import logging
 
-from .airtable import AirtableService
-from .meal_planner import MealPlannerService
+from app.services.airtable import AirtableService
+from app.services.meal_planner import MealPlannerService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/nutrition", tags=["Nutrition"])
