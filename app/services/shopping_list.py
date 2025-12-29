@@ -92,7 +92,7 @@ class ShoppingListService:
     def _get_planned_meals(self, meal_plan_id: str) -> List[Dict]:
         """Получает все запланированные приёмы пищи для плана"""
         table = self.api.table(self.base_id, self.planned_meals_table)
-        formula = f"{{Meal Plan}} = '{meal_plan_id}'"
+        formula = f"SEARCH('{meal_plan_id}', ARRAYJOIN({{Meal Plan}}))"
         
         records = table.all(formula=formula)
         return records
