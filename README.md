@@ -1,255 +1,212 @@
-# 🍽️ Nutrition Server
+# Nutrition Management System - Shopping List Feature
 
-Backend сервер для системы управления питанием. FastAPI + Airtable.
+## 🎯 Что добавлено
 
-## 🚀 Быстрый старт
+### Shopping List Generation
+Автоматическая генерация списков покупок на основе планов питания.
 
-### 1. Установка локально (для тестирования)
-
-```bash
-# Клонировать репозиторий (если используешь Git)
-git clone <your-repo-url>
-cd nutrition-server
-
-# Создать виртуальное окружение
-python3 -m venv venv
-source venv/bin/activate  # На Windows: venv\Scripts\activate
-
-# Установить зависимости
-pip install -r requirements.txt
-
-# Создать .env файл
-cp .env.example .env
-
-# Редактировать .env и добавить свой AIRTABLE_API_KEY
-nano .env  # или любой редактор
-```
-
-### 2. Настройка переменных окружения
-
-Открой `.env` и укажи:
-
-```env
-AIRTABLE_API_KEY=patXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXX
-AIRTABLE_BASE_ID=appBgJb1hzG4vFT1b
-PORT=8000
-```
-
-**Где взять AIRTABLE_API_KEY:**
-1. Зайди на https://airtable.com/create/tokens
-2. Create new token → "Nutrition Server"
-3. Scopes: `data.records:read`, `data.records:write`, `schema.bases:read`
-4. Access: выбери базу `appBgJb1hzG4vFT1b`
-5. Скопируй токен
-
-### 3. Запуск локально
-
-```bash
-# Из корня проекта
-python -m app.main
-
-# Или через uvicorn напрямую
-uvicorn app.main:app --reload --port 8000
-```
-
-Сервер запустится на `http://localhost:8000`
-
-### 4. Проверка работы
-
-Открой в браузере:
-- **Документация API:** http://localhost:8000/docs
-- **Health check:** http://localhost:8000/health
-- **Root:** http://localhost:8000/
-
-## 📡 API Endpoints
-
-### Health Check
-```
-GET /health
-```
-Проверяет работу сервера и подключение к Airtable.
-
-### Создать план питания
-```
-POST /api/nutrition/meal-plan/create
-
-Body:
-{
-  "user_id": "recw1ls8WIo31cteD",
-  "week_start": "2025-12-29",
-  "plan_name": "Week 1",
-  "notes": "Optional notes"
-}
-
-Response:
-{
-  "meal_plan_id": "recXXXXXXXXXXXXXX",
-  "plan_name": "Week 1",
-  "week_start": "2025-12-29",
-  "week_end": "2026-01-04",
-  "total_meals": 35,
-  "avg_calories": 2750,
-  "avg_protein": 210,
-  "status": "success",
-  "message": "План питания создан! 35 приёмов пищи добавлено."
-}
-```
-
-### Получить план питания
-```
-GET /api/nutrition/meal-plan/{plan_id}
-```
-
-### Генерация списка покупок
-```
-POST /api/nutrition/shopping-list/generate
-
-Body:
-{
-  "meal_plan_id": "recXXXXXXXXXXXXXX"
-}
-```
-(В разработке)
-
-## 🐳 Деплой на Railway
-
-### Вариант 1: Через GitHub
-
-1. **Создай GitHub репозиторий:**
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin <your-github-repo-url>
-   git push -u origin main
-   ```
-
-2. **Деплой на Railway:**
-   - Зайди на https://railway.app
-   - "New Project" → "Deploy from GitHub repo"
-   - Выбери свой репозиторий
-   - Railway автоматически обнаружит Dockerfile
-
-3. **Настрой переменные окружения в Railway:**
-   - Settings → Variables
-   - Добавь `AIRTABLE_API_KEY`
-   - Добавь `AIRTABLE_BASE_ID` (если нужен другой)
-
-4. **Деплой!**
-   - Railway автоматически задеплоит
-   - Получишь URL: `https://your-app.up.railway.app`
-
-### Вариант 2: Без GitHub (из ZIP)
-
-1. Создай ZIP архив проекта
-2. Railway → "Deploy" → "From Local"
-3. Загрузи ZIP
-4. Настрой переменные окружения
-5. Деплой!
-
-## 🧪 Тестирование
-
-### Локально через curl:
-
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Создать план питания
-curl -X POST http://localhost:8000/api/nutrition/meal-plan/create \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": "recw1ls8WIo31cteD",
-    "week_start": "2025-12-29"
-  }'
-```
-
-### Через n8n:
-
-**1. HTTP Request Node:**
-- Method: POST
-- URL: `https://your-server.railway.app/api/nutrition/meal-plan/create`
-- Body (JSON):
-```json
-{
-  "user_id": "recw1ls8WIo31cteD",
-  "week_start": "2025-12-29",
-  "plan_name": "My Week"
-}
-```
-
-**2. Обработать ответ в n8n**
-
-## 📂 Структура проекта
+## 📁 Структура
 
 ```
 nutrition-server/
 ├── app/
-│   ├── main.py              # FastAPI приложение
+│   ├── main.py                           # FastAPI app
 │   ├── routers/
-│   │   ├── health.py        # Health check endpoints
-│   │   └── nutrition.py     # Nutrition endpoints
+│   │   ├── health.py                     # Health check
+│   │   ├── nutrition_router.py           # Nutrition endpoints (stub)
+│   │   └── shopping_list_router.py       # Shopping List endpoints ✨ NEW
 │   ├── services/
-│   │   ├── airtable.py      # Airtable интеграция
-│   │   └── meal_planner.py  # Логика планирования
+│   │   └── shopping_list.py              # Shopping List service ✨ NEW
 │   └── models/
-│       └── schemas.py       # Pydantic модели
-├── requirements.txt         # Python зависимости
-├── Dockerfile              # Docker контейнер
-├── .env.example            # Пример переменных окружения
-├── .gitignore              # Git ignore файл
-└── README.md               # Этот файл
+│       └── shopping_list_schemas.py      # Pydantic models ✨ NEW
+├── requirements.txt
+└── README.md
 ```
 
-## 🔧 Технологии
+## 🚀 API Endpoints
 
-- **FastAPI** - современный веб-фреймворк
-- **pyairtable** - официальный Python клиент для Airtable
-- **pydantic** - валидация данных
-- **uvicorn** - ASGI сервер
-- **Docker** - контейнеризация
+### POST /api/nutrition/shopping-list/generate
+Генерирует список покупок для плана питания
 
-## 📝 Логика работы
-
-1. **n8n** вызывает endpoint `/api/nutrition/meal-plan/create`
-2. **Сервер**:
-   - Получает все рецепты из Airtable
-   - Генерирует оптимальный план на 7 дней
-   - Создаёт запись в `Meal_Plans`
-   - Создаёт 35 записей в `Planned_Meals` (батчами по 10)
-   - Возвращает результат
-3. **n8n** получает ответ с `meal_plan_id`
-
-**Скорость:** ~2-3 секунды на создание полного плана!
-
-## 🐛 Отладка
-
-### Проверка подключения к Airtable:
-```bash
-curl http://localhost:8000/health
-```
-
-Должен вернуть:
+**Request:**
 ```json
 {
-  "status": "healthy",
-  "version": "1.0.0",
-  "airtable_connected": true
+  "meal_plan_id": "recnd7GzJqTkiBTWa",
+  "shopping_date": "2024-12-30"
 }
 ```
 
-### Логи в Railway:
-- Dashboard → Your Project → Deployments → Logs
+**Response:**
+```json
+{
+  "shopping_list_id": "rec123456789",
+  "meal_plan_id": "recnd7GzJqTkiBTWa",
+  "items_count": 15,
+  "total_recipes": 20,
+  "total_meals": 35,
+  "message": "Shopping list generated successfully"
+}
+```
 
-## 🚀 Что дальше?
+### GET /api/nutrition/shopping-list/{shopping_list_id}
+Получает детальную информацию о списке покупок
 
-- [ ] Добавить генерацию shopping lists
-- [ ] Добавить batch cooking schedule
-- [ ] Оптимизация плана по бюджету
-- [ ] ML рекомендации блюд
-- [ ] Интеграция с Amazon для Amazon проекта
+**Response:**
+```json
+{
+  "shopping_list_id": "rec123456789",
+  "list_name": "Shopping List - Test Plan (2024-12-30)",
+  "status": "Pending",
+  "shopping_date": "2024-12-30",
+  "total_cost": null,
+  "items_count": 15,
+  "items": [...]
+}
+```
 
-## 📞 Поддержка
+## 🔧 Как работает Shopping List Generation
 
-Проблемы? Создай issue или спроси Claude! 😊
+### Процесс:
+
+1. **Получение плана питания**
+   - Находит план по ID
+   - Получает все запланированные приёмы пищи (Planned_Meals)
+
+2. **Сбор рецептов**
+   - Извлекает уникальные recipe_ids из всех приёмов пищи
+   - Учитывает количество порций (Servings) для каждого приёма
+
+3. **Сбор ингредиентов**
+   - Получает Recipe_Ingredients для всех рецептов
+   - Умножает количество ингредиентов на количество порций
+   - Получает названия ингредиентов из таблицы Ingredients
+
+4. **Агрегация**
+   - Группирует одинаковые ингредиенты (по ingredient_id + unit)
+   - Суммирует количество
+   - Сортирует по названию
+
+5. **Создание Shopping List**
+   - Создаёт запись в таблице Shopping_Lists
+   - Создаёт записи в Shopping_List_Items (batch операция)
+   - Связывает с ингредиентами
+
+### Пример агрегации:
+
+```
+Meal 1: Pollo Batch (250g) - 2 порции
+Meal 2: Chicken Rice (250g) - 1 порция
+
+Recipe: Pollo Batch
+- Pollo: 120g/порция
+
+Итого: 120g × 2 + 120g × 1 = 360g pollo
+```
+
+## 🏗️ Деплой на Railway
+
+### 1. Установка зависимостей
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Environment Variables
+```
+AIRTABLE_API_KEY=pat...
+```
+
+### 3. Запуск
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+### 4. Railway Config
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+## 📊 Airtable Schema
+
+### Shopping_Lists
+- List Name (text)
+- User (link to Users)
+- Meal Plan (link to Meal_Plans)
+- Shopping Date (date)
+- Status (select: Pending/Completed)
+- Total Cost (EUR) (currency)
+- Notes (long text)
+- Shopping_List_Items (link)
+
+### Shopping_List_Items
+- Item (text) - название + количество
+- Shopping List (link)
+- Ingredient (link to Ingredients)
+- Quantity (number)
+- Unit (select: г/мл/шт)
+- Purchased (checkbox)
+- Price (EUR) (currency)
+
+## 🧪 Тестирование
+
+### 1. Health Check
+```bash
+curl https://your-url.railway.app/health
+```
+
+### 2. Generate Shopping List
+```bash
+curl -X POST https://your-url.railway.app/api/nutrition/shopping-list/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meal_plan_id": "recnd7GzJqTkiBTWa",
+    "shopping_date": "2024-12-30"
+  }'
+```
+
+### 3. Get Shopping List
+```bash
+curl https://your-url.railway.app/api/nutrition/shopping-list/{id}
+```
+
+## 🔗 n8n Integration
+
+Workflow "Claud Test" уже настроен:
+
+```
+Webhook → Generate Shopping List
+```
+
+Нужно только **подключить** второй node к цепочке:
+
+1. Открыть workflow "Claud Test"
+2. Соединить "Запрос к Python Серверу" → "Generate Shopping List"
+3. Сохранить и протестировать
+
+## 🎯 Next Steps
+
+1. ✅ Деплой обновлённого кода на Railway
+2. ✅ Тестирование Shopping List generation
+3. ⚠️ Подключить node в n8n workflow
+4. 🔜 Добавить категоризацию ингредиентов (Mercadona sections)
+5. 🔜 Добавить ценовые данные
+6. 🔜 Telegram уведомления о списке покупок
+
+## 📝 Notes
+
+- Batch операции используются для оптимизации (10 records/batch)
+- Агрегация учитывает unit (г/мл/шт)
+- Shopping List автоматически связывается с Meal Plan
+- Items автоматически связываются с Ingredients
+
+## 🐛 Troubleshooting
+
+**Ошибка: "Meal plan not found"**
+- Проверь meal_plan_id
+- Проверь доступ к Airtable
+
+**Ошибка: "No planned meals found"**
+- Убедись что в плане есть Planned_Meals
+- Проверь связи Recipe в Planned_Meals
+
+**Пустой список ингредиентов**
+- Проверь Recipe_Ingredients для рецептов
+- Убедись что есть связь Ingredients

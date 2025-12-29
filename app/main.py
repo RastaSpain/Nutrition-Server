@@ -1,23 +1,31 @@
+"""
+Nutrition Management System - FastAPI Server
+Main application entry point
+"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-import os
+from app.routers import nutrition_router, shopping_list_router
+from app.routers.health import router as health_router
+import logging
 
-from app.routers import health, nutrition
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
-# Загрузить переменные окружения
-load_dotenv()
+logger = logging.getLogger(__name__)
 
-# Создать FastAPI приложение
+# Создание FastAPI приложения
 app = FastAPI(
-    title="Nutrition Server API",
-    description="Backend сервер для системы управления питанием",
+    title="Nutrition Management System API",
+    description="API for managing meal plans, recipes, and shopping lists for camper living",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
-# CORS middleware (разрешаем запросы от n8n)
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # В продакшене указать конкретные домены
@@ -26,30 +34,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключить роутеры
-app.include_router(health.router)
-app.include_router(nutrition.router)
+# Подключение роутеров
+app.include_router(health_router)
+app.include_router(nutrition_router.router)
+app.include_router(shopping_list_router.router)
 
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    """Выполняется при запуске сервера"""
-    print("🚀 Nutrition Server starting...")
-    print(f"📊 Airtable Base ID: {os.getenv('AIRTABLE_BASE_ID', 'appBgJb1hzG4vFT1b')}")
-    print(f"✅ Server ready!")
-
-# Shutdown event
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Выполняется при остановке сервера"""
-    print("🛑 Nutrition Server shutting down...")
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "Nutrition Management System API",
+        "version": "1.0.0",
+        "status": "running",
+        "docs": "/docs"
+    }
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=True
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8000)

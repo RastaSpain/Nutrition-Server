@@ -1,38 +1,49 @@
-from fastapi import APIRouter, Depends
-from app.models.schemas import HealthResponse
-from app.services.airtable import get_airtable_service, AirtableService
+"""
+Health Check Router
+"""
+from fastapi import APIRouter, HTTPException
+from pyairtable import Api
+import os
 
-router = APIRouter(tags=["health"])
+router = APIRouter(tags=["Health"])
 
-@router.get("/health", response_model=HealthResponse)
-async def health_check(airtable: AirtableService = Depends(get_airtable_service)):
+@router.get("/health")
+async def health_check():
     """
     Health check endpoint
-    
-    Проверяет:
-    - Сервер работает
-    - Подключение к Airtable OK
+    Проверяет работу сервера и подключение к Airtable
     """
-    airtable_connected = airtable.test_connection()
-    
-    return HealthResponse(
-        status="healthy" if airtable_connected else "degraded",
-        version="1.0.0",
-        airtable_connected=airtable_connected
-    )
-
-@router.get("/")
-async def root():
-    """Root endpoint"""
-    return {
-        "service": "Nutrition Server",
-        "version": "1.0.0",
-        "status": "running",
-        "endpoints": {
-            "health": "/health",
-            "docs": "/docs",
-            "meal_plan_create": "POST /api/nutrition/meal-plan/create",
-            "meal_plan_get": "GET /api/nutrition/meal-plan/{plan_id}",
-            "shopping_list": "POST /api/nutrition/shopping-list/generate"
-        }
-    }
+    try:
+        # Проверка Airtable connection
+        api_key = os.getenv('AIRTABLE_API_KEY')
+        if not api_key:
+            return {
+                "status": "unhealthy",
+                "airtable_connection": "error - no API key",
+                "error": "AIRTABLE_API_KEY not set"
+            }
+        
+        api = Api(api_key)
+        base_id = 'appBgJb1hzG4vFT1b'
+        
+        # Пробуем получить список таблиц
+        try:
+            table = api.table(base_id, 'tblgge1WnUvQSnMCh')  # Recipes table
+            # Пробуем получить одну запись
+            recipes = table.all(max_records=1)
+            
+            return {
+                "status": "healthy",
+                "airtable_connection": "ok",
+                "base_accessible": True,
+                "recipes_count": len(recipes)
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "airtable_connection": "error",
+                "error": str(e)
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
