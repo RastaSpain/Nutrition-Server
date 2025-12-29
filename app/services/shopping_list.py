@@ -137,14 +137,14 @@ class ShoppingListService:
         
         # Создаём формулу для фильтрации по recipe IDs
         # Формируем условия для каждого recipe_id
-        recipe_conditions = []
-        for rid in recipe_ids:
-            recipe_conditions.append(f"{{Recipes 2}} = '{rid}'")
-        
-        formula = f"OR({','.join(recipe_conditions)})"
-        
-        # Получаем связи рецепт-ингредиент
-        recipe_ingredients = table.all(formula=formula)
+        all_recipe_ingredients = table.all()
+recipe_ingredients = []
+recipe_ids_set = set(recipe_ids)
+
+for record in all_recipe_ingredients:
+    recipes_links = record['fields'].get('Recipes 2', [])
+    if any(rid in recipe_ids_set for rid in recipes_links):
+        recipe_ingredients.append(record)
         
         # Создаём мапу рецепт -> количество порций
         recipe_servings = {}
