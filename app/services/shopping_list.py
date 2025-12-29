@@ -276,14 +276,20 @@ class ShoppingListService:
         # Формируем записи для batch create
         records_to_create = []
         for ing in ingredients:
-            item_name = f"{ing['ingredient_name']} ({ing['quantity']}{ing['unit']})"
+            # Конвертируем единицы из Recipe_Ingredients в Shopping_List_Items
+            # Recipe_Ingredients использует "гр", Shopping_List_Items использует "г"
+            unit = ing['unit']
+            if unit == 'гр':
+                unit = 'г'
+            
+            item_name = f"{ing['ingredient_name']} ({ing['quantity']}{unit})"
             
             record = {
                 'Item': item_name,
                 'Shopping List': [shopping_list_id],
                 'Ingredient': [ing['ingredient_id']],
                 'Quantity': ing['quantity'],
-                'Unit': ing['unit'],
+                'Unit': unit,
                 'Purchased': False
             }
             records_to_create.append(record)
