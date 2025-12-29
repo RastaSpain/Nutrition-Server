@@ -135,16 +135,19 @@ class ShoppingListService:
         # Получаем Recipe_Ingredients для всех рецептов
         table = self.api.table(self.base_id, self.recipe_ingredients_table)
         
-        # Создаём формулу для фильтрации по recipe IDs
-        # Формируем условия для каждого recipe_id
+        # Получаем ВСЕ Recipe_Ingredients и фильтруем в Python
+        # (формулы Airtable для linked records работают странно)
         all_recipe_ingredients = table.all()
-recipe_ingredients = []
-recipe_ids_set = set(recipe_ids)
-
-for record in all_recipe_ingredients:
-    recipes_links = record['fields'].get('Recipes 2', [])
-    if any(rid in recipe_ids_set for rid in recipes_links):
-        recipe_ingredients.append(record)
+        
+        # Фильтруем только те, которые относятся к нашим рецептам
+        recipe_ingredients = []
+        recipe_ids_set = set(recipe_ids)
+        
+        for record in all_recipe_ingredients:
+            # Проверяем есть ли recipe_id в поле Recipes 2
+            recipes_links = record['fields'].get('Recipes 2', [])
+            if any(rid in recipe_ids_set for rid in recipes_links):
+                recipe_ingredients.append(record)
         
         # Создаём мапу рецепт -> количество порций
         recipe_servings = {}
